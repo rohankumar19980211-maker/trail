@@ -70,5 +70,32 @@
     "password": "$2a$10$NwuB9Hn8RpHsaeznoPMySuynAjvrlAf/ISd3Ln.EMfngFAkcjerR6",
     "name": "varun",
     "role": "employee"
+  },
+  {
+    "_id": "id_1788600304997_x91qyzh9g",
+    "createdAt": "2026-09-05T09:25:04.997Z",
+    "updatedAt": "2026-09-05T09:25:04.997Z",
+    "username": "ramu@xyz",
+    "password": "$2a$10$Csm8TZAEMaixg5aXjSLNyeGoqrKrDNY4Y0ioIEFKkY698Mrg45t9O",
+    "name": "Ramu",
+    "role": "employee"
+  },
+  {
+    "_id": "id_1788601556035_3n6x4vfwa",
+    "createdAt": "2026-09-05T09:45:56.035Z",
+    "updatedAt": "2026-09-05T09:45:56.035Z",
+    "username": "rohans",
+    "password": "$2a$10$wGziMx70HtCHdIRzZdhstuE4v0SsjXC4LLZxf/vuT.l4iaYN7X/Sy",
+    "name": "Rohan Sharma",
+    "role": "employee"
+  },
+  {
+    "_id": "id_1788607000000_sanityemp",
+    "createdAt": "2026-09-05T11:00:00.000Z",
+    "updatedAt": "2026-09-05T11:00:00.000Z",
+    "username": "sanity_emp",
+    "password": "SanityPass2026!",
+    "name": "Sanity Check Employee",
+    "role": "employee"
   }
 ]

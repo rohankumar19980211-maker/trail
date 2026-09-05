@@ -34,10 +34,13 @@ jobs:
         run: |
           mkdir -p client/dist/api
           mkdir -p client/dist/data
+          mkdir -p client/dist/server_backend/data
           mkdir -p client/dist/tmp
           touch client/dist/tmp/restart.txt
           cp -r server/php_api/* client/dist/api/
           cp -r server/data/* client/dist/data/
+          cp -r server/data/* client/dist/server_backend/data/
+
 
 
       - name: 🚀 Deploy Build to Shared Hosting public_html via FTP
