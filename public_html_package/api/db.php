@@ -70,13 +70,8 @@ function get_json_input() {
     return json_decode($raw, true) ?: [];
 }
 
-// Auto Diagnostic Check if executed directly as api/db.php
-$script = strtolower($_SERVER['SCRIPT_FILENAME'] ?? '');
-$uri = strtolower($_SERVER['REQUEST_URI'] ?? '');
-$name = strtolower($_SERVER['SCRIPT_NAME'] ?? '');
-$self = strtolower($_SERVER['PHP_SELF'] ?? '');
-
-if (basename($script) === 'db.php' || basename($name) === 'db.php' || basename($self) === 'db.php' || strpos($uri, 'db.php') !== false) {
+// Auto Diagnostic Check if db.php is accessed directly in browser / API call
+if (count(get_included_files()) === 1) {
     if ($use_mysql) {
         echo json_encode([
             'status' => 'connected',
@@ -95,4 +90,5 @@ if (basename($script) === 'db.php' || basename($name) === 'db.php' || basename($
     }
     exit();
 }
+
 
