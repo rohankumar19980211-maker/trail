@@ -36,6 +36,7 @@ class JsonCollection {
   }
 
   find(filter = {}) {
+    this._load();
     let results = this.data;
     if (filter.category) {
       results = results.filter(item => item.category === filter.category);
