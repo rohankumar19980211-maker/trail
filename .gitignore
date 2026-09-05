@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Production build outputs (GitHub Actions will build these on push)
+client/dist/
+*.zip
+
+# Environment & Logs
+.env
+*.log
+npm-debug.log*
+
+# System & OS
+.DS_Store
+Thumbs.db

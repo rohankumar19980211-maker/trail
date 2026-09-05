@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Direct API Requests to Node.js App or Passenger
+  <IfModule mod_passenger.c>
+    PassengerEnabled on
+    PassengerAppType node
+    PassengerStartupFile app.js
+  </IfModule>
+
+  # SPA Routing: If file/dir does not exist, fallback to index.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.html [L]
+</IfModule>

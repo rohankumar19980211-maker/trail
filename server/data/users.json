@@ -1,0 +1,74 @@
+[
+  {
+    "_id": "id_1788541324997_3ynv4vlme",
+    "createdAt": "2026-09-04T17:02:04.997Z",
+    "updatedAt": "2026-09-04T17:02:04.997Z",
+    "username": "admin",
+    "password": "admin123",
+    "name": "Master Admin",
+    "role": "admin"
+  },
+  {
+    "_id": "id_1788541324997_i3au2p6id",
+    "createdAt": "2026-09-04T17:02:04.997Z",
+    "updatedAt": "2026-09-04T17:02:04.997Z",
+    "username": "emp_john",
+    "password": "boxemp123",
+    "name": "John Miller (Sales)",
+    "role": "employee"
+  },
+  {
+    "_id": "id_1788541324997_s8lduluez",
+    "createdAt": "2026-09-04T17:02:04.997Z",
+    "updatedAt": "2026-09-04T17:02:04.997Z",
+    "username": "emp_sarah",
+    "password": "boxemp123",
+    "name": "Sarah Jenkins (Logistics)",
+    "role": "employee"
+  },
+  {
+    "_id": "id_1788541324997_mh48og01e",
+    "createdAt": "2026-09-04T17:02:04.997Z",
+    "updatedAt": "2026-09-04T17:02:04.997Z",
+    "username": "emp_alex",
+    "password": "boxemp123",
+    "name": "Alex Rivera (Warehouse)",
+    "role": "employee"
+  },
+  {
+    "_id": "id_1788541324997_3fyr2d377",
+    "createdAt": "2026-09-04T17:02:04.997Z",
+    "updatedAt": "2026-09-04T17:02:04.997Z",
+    "username": "emp_david",
+    "password": "boxemp123",
+    "name": "David Vance (Procurement)",
+    "role": "employee"
+  },
+  {
+    "_id": "id_1788542835556_68v7865j4",
+    "createdAt": "2026-09-04T17:27:15.556Z",
+    "updatedAt": "2026-09-04T19:24:18.314Z",
+    "username": "rahul@work.com",
+    "password": "$2a$10$D4RhsacxH.aCvXF2omviH.p4tbEJu/e3x4ttoKLLveOq3/pJg17JC",
+    "name": "Rahul",
+    "role": "employee"
+  },
+  {
+    "_id": "id_1788542948045_c0vo38hg8",
+    "createdAt": "2026-09-04T17:29:08.045Z",
+    "updatedAt": "2026-09-04T17:29:08.045Z",
+    "username": "ansh@work.com",
+    "password": "$2a$10$2wrtXv5kO4MWsXo7t.PMBOE9dnGDdzS6XpiCHZTT7MNVQbnB9qVqK",
+    "name": "ansh",
+    "role": "employee"
+  },
+  {
+    "_id": "id_1788548807813_853zaqbm2",
+    "createdAt": "2026-09-04T19:06:47.813Z",
+    "updatedAt": "2026-09-04T19:06:47.814Z",
+    "username": "varunxyz",
+    "password": "$2a$10$NwuB9Hn8RpHsaeznoPMySuynAjvrlAf/ISd3Ln.EMfngFAkcjerR6",
+    "name": "varun",
+    "role": "employee"
+  }
+]
