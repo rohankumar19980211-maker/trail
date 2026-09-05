@@ -1,9 +1,11 @@
 # BOXRETAIL - Native PHP 8.x + LiteSpeed / cPanel Configuration
+DirectoryIndex index.php index.html
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # Ensure Authorization Header is passed to PHP
+  # Pass Authorization Header to PHP
   RewriteCond %{HTTP:Authorization} ^(.*)
   RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 </IfModule>
@@ -18,9 +20,3 @@
   ExpiresByType text/css "access plus 1 week"
   ExpiresByType application/javascript "access plus 1 week"
 </IfModule>
-
-# Protect Config Files
-<FilesMatch "^(db|config)\.php$">
-  Order allow,deny
-  Allow from all
-</FilesMatch>
