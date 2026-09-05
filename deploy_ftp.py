@@ -88,7 +88,23 @@ chunks = []
 ftp.retrbinary('RETR version.txt', chunks.append)
 remote_version = b''.join(chunks).decode().strip()
 
+# Surface the layout on the run summary: on shared hosting the real document
+# root for an addon domain is a sibling folder here, not base_target itself.
+siblings = []
+try:
+    ftp.cwd('/')
+    for name in ftp.nlst():
+        try:
+            ftp.cwd('/' + name.lstrip('/'))
+            siblings.append(name + '/')
+        except Exception:
+            pass
+except Exception as e:
+    siblings.append(f'(listing failed: {e})')
+ftp.cwd(base_target)
+
 print(f"::notice title=DEPLOY_PATH::uploaded_to={base_target} remote_version={remote_version}")
+print(f"::notice title=FTP_LAYOUT::login_dir={pwd} dirs_at_root={','.join(siblings[:25])}")
 
 if remote_version != local_version:
     print(f"❌ Verification FAILED: {base_target}/version.txt reads '{remote_version}', expected '{local_version}'")
