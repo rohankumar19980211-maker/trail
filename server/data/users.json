@@ -88,5 +88,14 @@
     "password": "$2a$10$wGziMx70HtCHdIRzZdhstuE4v0SsjXC4LLZxf/vuT.l4iaYN7X/Sy",
     "name": "Rohan Sharma",
     "role": "employee"
+  },
+  {
+    "_id": "id_1788607000000_sanityemp",
+    "createdAt": "2026-09-05T11:00:00.000Z",
+    "updatedAt": "2026-09-05T11:00:00.000Z",
+    "username": "sanity_emp",
+    "password": "SanityPass2026!",
+    "name": "Sanity Check Employee",
+    "role": "employee"
   }
 ]
