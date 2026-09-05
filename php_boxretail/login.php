@@ -97,32 +97,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </p>
             </div>
 
-            <!-- Quick Demo Credentials Card -->
-            <div class="mt-8 pt-6 border-t border-slate-800/80 space-y-3">
-                <span class="text-[11px] font-bold text-amber-500 uppercase tracking-wider">Quick Fill Test Accounts:</span>
-                
-                <div class="grid grid-cols-1 gap-2">
-                    <button type="button" 
-                            onclick="fillCredentials('admin', 'admin123')"
-                            class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-left transition-colors flex items-center justify-between text-xs">
-                        <div>
-                            <div class="font-bold text-white">Master Admin</div>
-                            <div class="text-[11px] text-slate-400 font-mono">admin / admin123</div>
-                        </div>
-                        <span class="text-amber-400 text-[10px] font-bold">Autofill ➔</span>
-                    </button>
-
-                    <button type="button" 
-                            onclick="fillCredentials('sanity_emp', 'SanityPass2026!')"
-                            class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-left transition-colors flex items-center justify-between text-xs">
-                        <div>
-                            <div class="font-bold text-white">Sanity Test Employee</div>
-                            <div class="text-[11px] text-slate-400 font-mono">sanity_emp / SanityPass2026!</div>
-                        </div>
-                        <span class="text-amber-400 text-[10px] font-bold">Autofill ➔</span>
-                    </button>
-                </div>
-            </div>
         </div>
 
         <!-- Right Column: Sign In Form -->
@@ -182,11 +156,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     </div>
 
-    <script>
-        function fillCredentials(u, p) {
-            document.getElementById('usernameInput').value = u;
-            document.getElementById('passwordInput').value = p;
-        }
-    </script>
 </body>
 </html>
