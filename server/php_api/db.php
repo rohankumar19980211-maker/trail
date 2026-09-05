@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $host = getenv('DB_HOST') ?: 'localhost';
 $db   = getenv('DB_NAME') ?: 'livetea113398_boxretail';
 $user = getenv('DB_USER') ?: 'livetea113398_boxuser';
-$pass = getenv('DB_PASS') ?: 'BoxStorePass2026!';
+$pass = getenv('DB_PASS') ?: 'KUM^ar@1122';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
