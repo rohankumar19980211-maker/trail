@@ -15,17 +15,35 @@ class JsonCollection {
 
   _load() {
     try {
-      if (fs.existsSync(this.filePath)) {
-        const raw = fs.readFileSync(this.filePath, 'utf8');
-        this.data = JSON.parse(raw);
-      } else {
-        this.data = [];
-        this._save();
+      const candidatePaths = [
+        path.join(__dirname, '../data', `${this.name}.json`),
+        path.join(__dirname, '../../data', `${this.name}.json`),
+        path.join(process.cwd(), 'data', `${this.name}.json`),
+        path.join(process.cwd(), 'server_backend/data', `${this.name}.json`),
+        path.join(process.cwd(), '../data', `${this.name}.json`),
+        path.join('/home/livetea113398/public_html/data', `${this.name}.json`),
+        path.join('/home/livetea113398/public_html/server_backend/data', `${this.name}.json`)
+      ];
+
+      for (const p of candidatePaths) {
+        if (fs.existsSync(p)) {
+          const raw = fs.readFileSync(p, 'utf8');
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            this.filePath = p;
+            this.data = parsed;
+            return;
+          }
+        }
       }
+
+      this.filePath = path.join(__dirname, '../data', `${this.name}.json`);
+      this.data = [];
     } catch (e) {
       this.data = [];
     }
   }
+
 
   _save() {
     try {
