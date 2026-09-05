@@ -3,7 +3,7 @@ $suppress_db_check = true;
 require_once __DIR__ . '/db.php';
 
 
-define('JWT_SECRET', 'SuperSecretEnterpriseKey_BoxRetail_2026#');
+if (!defined('JWT_SECRET')) define('JWT_SECRET', getenv('JWT_SECRET') ?: 'SuperSecretEnterpriseKey_BoxRetail_2026#');
 
 // 1. Universal Password Hash Generator & Verifier
 function generate_universal_hash($password, $salt = null) {
@@ -83,12 +83,19 @@ function get_auth_user() {
 
     $token = trim(substr($auth, 7));
     $parts = explode('.', $token);
-    if (count($parts) === 3) {
-        $payloadRaw = base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1]));
-        $payload = json_decode($payloadRaw, true);
-        return is_array($payload) ? $payload : null;
-    }
-    return null;
+    if (count($parts) !== 3) return null;
+
+    // Reject any token we did not sign, and any token past its exp.
+    $expected = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode(
+        hash_hmac('sha256', $parts[0] . '.' . $parts[1], JWT_SECRET, true)
+    ));
+    if (!hash_equals($expected, $parts[2])) return null;
+
+    $payload = json_decode(base64_decode(str_replace(['-', '_'], ['+', '/'], $parts[1])), true);
+    if (!is_array($payload)) return null;
+    if (!isset($payload['exp']) || time() >= $payload['exp']) return null;
+
+    return $payload;
 }
 
 // 3. API Action Router
