@@ -6,16 +6,27 @@ const crypto = require('crypto');
 const dbStore = require('../utils/dbStore');
 const { authMiddleware, adminOnly, JWT_SECRET } = require('../middleware/authMiddleware');
 
-function boxHashPassword(password) {
-  return 'sha256$' + crypto.createHash('sha256').update(password + 'box_salt_2026').digest('hex');
+function boxHashPassword(password, salt = null) {
+  if (!salt) {
+    salt = crypto.randomBytes(16).toString('hex');
+  }
+  const hash = crypto.createHmac('sha256', salt).update(password).digest('hex');
+  return `sha256$${salt}$${hash}`;
 }
 
 async function boxVerifyPassword(password, hash) {
   if (!hash) return false;
   
   if (hash.startsWith('sha256$')) {
-    const calc = 'sha256$' + crypto.createHash('sha256').update(password + 'box_salt_2026').digest('hex');
-    return hash === calc;
+    const parts = hash.split('$');
+    if (parts.length === 3) {
+      const salt = parts[1];
+      const calcHash = crypto.createHmac('sha256', salt).update(password).digest('hex');
+      const expected = `sha256$${salt}$${calcHash}`;
+      return hash === expected;
+    }
+    const legacyCalc = 'sha256$' + crypto.createHash('sha256').update(password + 'box_salt_2026').digest('hex');
+    if (hash === legacyCalc) return true;
   }
   
   if (hash.startsWith('$2')) {
@@ -27,6 +38,7 @@ async function boxVerifyPassword(password, hash) {
   
   return hash === String(password);
 }
+
 
 // POST /api/auth/login - Flexible login for employees and admin
 router.post('/login', async (req, res) => {
