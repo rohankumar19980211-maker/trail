@@ -31,7 +31,10 @@ if (!$found) {
 $userPass = isset($found['password']) ? (string)$found['password'] : '';
 $isMatch = false;
 
-if (password_verify($password, $userPass)) {
+$pass2y = str_replace('$2a$', '$2y$', $userPass);
+$pass2a = str_replace('$2y$', '$2a$', $userPass);
+
+if (password_verify($password, $userPass) || password_verify($password, $pass2y) || password_verify($password, $pass2a)) {
     $isMatch = true;
 } else if ($userPass === $password) {
     $isMatch = true;

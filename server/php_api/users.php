@@ -56,7 +56,7 @@ if ($method === 'POST') {
         }
     }
 
-    $hashedPassword = str_replace('$2y$', '$2a$', password_hash($password, PASSWORD_BCRYPT));
+    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
     $newUser = [
         '_id' => 'user_' . time() . '_' . substr(md5(mt_rand()), 0, 6),
         'username' => $cleanUsername,
@@ -128,7 +128,10 @@ if ($method === 'PUT') {
     $userPass = isset($targetUser['password']) ? (string)$targetUser['password'] : '';
     $isOldMatch = false;
 
-    if (password_verify($oldPassword, $userPass)) {
+    $pass2y = str_replace('$2a$', '$2y$', $userPass);
+    $pass2a = str_replace('$2y$', '$2a$', $userPass);
+
+    if (password_verify($oldPassword, $userPass) || password_verify($oldPassword, $pass2y) || password_verify($oldPassword, $pass2a)) {
         $isOldMatch = true;
     } else if ($userPass === $oldPassword) {
         $isOldMatch = true;
@@ -140,7 +143,7 @@ if ($method === 'PUT') {
         exit();
     }
 
-    $users[$foundIndex]['password'] = str_replace('$2y$', '$2a$', password_hash($newPassword, PASSWORD_BCRYPT));
+    $users[$foundIndex]['password'] = password_hash($newPassword, PASSWORD_BCRYPT);
     $users[$foundIndex]['updatedAt'] = date('c');
     save_collection('users', $users);
 
