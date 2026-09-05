@@ -10,9 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $host = getenv('DB_HOST') ?: 'localhost';
-$db   = getenv('DB_NAME') ?: 'cpanel_username_boxretail';
-$user = getenv('DB_USER') ?: 'cpanel_username_dbuser';
-$pass = getenv('DB_PASS') ?: 'YourStrongDBPassword123!';
+$db   = getenv('DB_NAME') ?: 'livetea113398_boxretail';
+$user = getenv('DB_USER') ?: 'livetea113398_boxuser';
+$pass = getenv('DB_PASS') ?: 'BoxStorePass2026!';
 $charset = 'utf8mb4';
 
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -24,13 +24,14 @@ $options = [
 
 $pdo = null;
 $use_mysql = false;
+$db_error = null;
 
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
     $use_mysql = true;
 } catch (\PDOException $e) {
-    // Database fallback to JSON file storage if MySQL is not yet configured
     $use_mysql = false;
+    $db_error = $e->getMessage();
 }
 
 // Fallback JSON DB directory helper
@@ -67,4 +68,25 @@ function save_json_collection($name, $data) {
 function get_json_input() {
     $raw = file_get_contents('php://input');
     return json_decode($raw, true) ?: [];
+}
+
+// Auto Diagnostic Check if executed directly as api/db.php
+if (basename($_SERVER['SCRIPT_FILENAME']) === 'db.php') {
+    if ($use_mysql) {
+        echo json_encode([
+            'status' => 'connected',
+            'database' => $db,
+            'user' => $user,
+            'message' => 'Successfully connected to MySQL database!'
+        ]);
+    } else {
+        echo json_encode([
+            'status' => 'fallback_json',
+            'database' => $db,
+            'user' => $user,
+            'error' => $db_error,
+            'message' => 'MySQL connection failed. Running in JSON fallback mode. Update DB_NAME, DB_USER, DB_PASS in api/db.php to match cPanel MySQL credentials.'
+        ]);
+    }
+    exit();
 }
