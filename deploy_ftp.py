@@ -75,7 +75,21 @@ for root, dirs, files in os.walk(local_dir):
 
 ftp.cwd(base_target)
 final_items = ftp.nlst()
-print(f"\n🎉 Deployment completed! Uploaded {uploaded_count} files.")
-print(f"Current files in {base_target}: {final_items}")
+print(f"\nUploaded {uploaded_count} files to {base_target}")
+print(f"Files now in {base_target}: {final_items}")
 
+# Read version.txt back off the server. A green build that changed nothing is
+# worse than a red one, so a mismatch here fails the job.
+local_version = open(os.path.join(local_dir, 'version.txt')).read().strip()
+chunks = []
+ftp.retrbinary('RETR version.txt', chunks.append)
+remote_version = b''.join(chunks).decode().strip()
+
+print(f"::notice title=DEPLOY_PATH::uploaded_to={base_target} remote_version={remote_version}")
+
+if remote_version != local_version:
+    print(f"❌ Verification FAILED: {base_target}/version.txt reads '{remote_version}', expected '{local_version}'")
+    sys.exit(1)
+
+print(f"🎉 Verified: {base_target} is serving '{remote_version}'")
 ftp.quit()
