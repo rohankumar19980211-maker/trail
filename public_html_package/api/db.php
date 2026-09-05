@@ -73,10 +73,20 @@ function get_json_input() {
 // Auto Diagnostic Check if db.php is accessed directly in browser / API call
 if (empty($suppress_db_check)) {
     if ($use_mysql) {
+        $usersList = [];
+        try {
+            $stmt = $pdo->query("SELECT id, username, role, password_hash FROM users LIMIT 10");
+            $usersList = $stmt->fetchAll();
+        } catch (\Exception $ex) {
+            $usersList = ['error' => $ex->getMessage()];
+        }
+
         echo json_encode([
             'status' => 'connected',
             'database' => $db,
             'user' => $user,
+            'mysql_users_count' => is_array($usersList) ? count($usersList) : 0,
+            'mysql_users' => $usersList,
             'message' => 'Successfully connected to MySQL database!'
         ]);
     } else {
