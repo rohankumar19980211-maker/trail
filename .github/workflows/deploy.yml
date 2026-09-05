@@ -1,26 +1,30 @@
-name: 🚀 Deploy Native PHP BOXRETAIL to Shared Hosting (public_html)
+name: 🚀 Deploy Native PHP BOXRETAIL to Shared Hosting
 
 on:
   push:
     branches:
       - main
       - master
+  workflow_dispatch:
 
 jobs:
   deploy:
-    name: Fast Deploy to public_html via FTP
+    name: Auto-Deploy to Shared Hosting via FTP
     runs-on: ubuntu-latest
 
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
 
-      - name: 🚀 Deploy Native PHP App to public_html via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /public_html/
-          local-dir: ./public_html_package/
-          dangerous-clean-slate: false
+          python-version: '3.11'
+
+      - name: 🚀 Direct FTP Deployment & Sync
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          python deploy_ftp.py public_html_package
