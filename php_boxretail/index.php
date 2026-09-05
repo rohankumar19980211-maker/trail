@@ -146,31 +146,6 @@ if (!$currentUser):
                 </button>
             </form>
 
-            <!-- Quick Autofill Helpers -->
-            <div class="pt-4 border-t border-slate-800 space-y-2">
-                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quick Fill Demo Accounts:</div>
-                <div class="grid grid-cols-2 gap-2 text-[11px]">
-                    <button type="button" 
-                            @click="portal = 'employee'; document.getElementById('usernameField').value = 'sanity_emp'; document.getElementById('passwordField').value = 'SanityPass2026!';"
-                            class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left text-slate-300 hover:text-amber-400">
-                        <div class="font-bold">Sanity Employee</div>
-                        <div class="text-[10px] text-slate-400 font-mono">sanity_emp</div>
-                    </button>
-
-                    <button type="button" 
-                            @click="portal = 'admin'; document.getElementById('usernameField').value = 'admin'; document.getElementById('passwordField').value = 'admin123';"
-                            class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left text-slate-300 hover:text-amber-400">
-                        <div class="font-bold">Master Admin</div>
-                        <div class="text-[10px] text-slate-400 font-mono">admin</div>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Database Setup / Status Helper -->
-            <div class="text-center text-xs text-slate-500">
-                <a href="install.php" class="hover:text-amber-400 underline">Database Setup & 360+ Product Seeder (install.php)</a>
-            </div>
-
         </div>
     </div>
 

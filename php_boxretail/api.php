@@ -1,18 +1,22 @@
 <?php
 // api.php - Fast JSON AJAX Endpoint for Wholesale Operations
 header('Content-Type: application/json; charset=UTF-8');
-header('Access-Control-Allow-Origin: *');
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/config/auth.php';
 
 $action = $_GET['action'] ?? '';
 
+// Employees and admins only. JSON 401 rather than require_login()'s redirect.
+if (!is_logged_in()) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized. Please sign in.']);
+    exit();
+}
+
 // 1. Health check & DB diagnostic
 if ($action === 'health' || empty($action)) {
     echo json_encode([
         'status' => $db_connected ? 'connected' : 'error',
-        'database' => $db_name,
-        'user' => $db_user,
         'time' => date('c'),
         'message' => $db_connected ? 'Native PHP 8.x + MySQL PDO connection healthy!' : ($db_error_msg ?? 'Database disconnected')
     ]);

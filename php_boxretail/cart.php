@@ -1,6 +1,9 @@
 <?php
 // cart.php - Wholesale Cart Review & Quote Checkout
 $pageTitle = 'Wholesale Cart & Procurement Quote';
+require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/config/auth.php';
+require_login('employee');
 require_once __DIR__ . '/includes/header.php';
 
 $orderPlaced = null;

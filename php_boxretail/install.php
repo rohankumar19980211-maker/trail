@@ -3,6 +3,17 @@
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/config/auth.php';
 
+// Open while bootstrapping an empty install; admin-only once users exist.
+$users_exist = false;
+if ($db_connected && $pdo) {
+    try { $users_exist = (int)$pdo->query("SELECT COUNT(*) FROM `users`")->fetchColumn() > 0; }
+    catch (\Exception $e) { $users_exist = false; }
+}
+if ($users_exist && !is_admin()) {
+    header("Location: index.php?error=admin_only");
+    exit();
+}
+
 $message = '';
 $status_type = 'info';
 
