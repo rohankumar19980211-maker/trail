@@ -7,6 +7,7 @@ function seed_database_all() {
 
     $defaultUsers = [
         ['username' => 'admin', 'password' => 'admin123', 'name' => 'Master Admin', 'role' => 'admin'],
+        ['username' => 'sanity_emp', 'password' => 'SanityPass2026!', 'name' => 'Sanity Test Employee', 'role' => 'employee'],
         ['username' => 'emp_john', 'password' => 'boxemp123', 'name' => 'John Miller (Sales)', 'role' => 'employee'],
         ['username' => 'emp_sarah', 'password' => 'boxemp123', 'name' => 'Sarah Jenkins (Logistics)', 'role' => 'employee'],
         ['username' => 'emp_alex', 'password' => 'boxemp123', 'name' => 'Alex Rivera (Warehouse)', 'role' => 'employee'],
@@ -144,7 +145,7 @@ function seed_database_all() {
                 ]);
             }
         } catch (\Exception $e) {
-            // Error logged, fallback to JSON
+            // Error logged
         }
     }
 

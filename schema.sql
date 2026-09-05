@@ -70,11 +70,11 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Insert Master Admin and Default Employee Accounts
--- Passwords hashed using Universal Salted SHA-256 Protocol (salt: defaultsalt2026)
--- admin / admin123 -> sha256$defaultsalt2026$8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+-- Insert Master Admin, Sample Sanity Employee, and Default Accounts
+-- Passwords hashed using Universal Salted HMAC SHA-256 Protocol
 INSERT INTO `users` (`username`, `password_hash`, `name`, `role`) VALUES
 ('admin', 'sha256$defaultsalt2026$8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 'Master Admin', 'admin'),
+('sanity_emp', 'sha256$sanitysalt2026$3fe9f944f83419bb2f3a286793f777203d86e1c2e392e5aa638257d56eb86890', 'Sanity Test Employee', 'employee'),
 ('emp_john', 'sha256$defaultsalt2026$54c46f13e71781297e6be9a3b6d274bf4187fcebf88e13296c0989b5c30164c4', 'John Miller (Sales)', 'employee'),
 ('emp_sarah', 'sha256$defaultsalt2026$54c46f13e71781297e6be9a3b6d274bf4187fcebf88e13296c0989b5c30164c4', 'Sarah Jenkins (Logistics)', 'employee'),
 ('emp_alex', 'sha256$defaultsalt2026$54c46f13e71781297e6be9a3b6d274bf4187fcebf88e13296c0989b5c30164c4', 'Alex Rivera (Warehouse)', 'employee'),
