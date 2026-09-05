@@ -1,5 +1,197 @@
 <?php
-// index.php - 360+ Box Product Wholesale Catalog & Tier Calculator
+// index.php - Gatekept Wholesale Portal (Login Gateway vs 360+ Product Catalog)
+require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/config/auth.php';
+
+$login_error = '';
+$login_success = '';
+$activePortal = $_POST['portal_type'] ?? ($_GET['portal'] ?? 'employee'); // 'employee' | 'admin'
+
+// Process Portal Login Submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['portal_login'])) {
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
+    $activePortal = $_POST['portal_type'] ?? 'employee';
+
+    $result = attempt_login($username, $password, $activePortal);
+    if ($result['success']) {
+        if ($result['user']['role'] === 'admin') {
+            header("Location: admin.php");
+        } else {
+            header("Location: index.php?msg=welcome");
+        }
+        exit();
+    } else {
+        $login_error = $result['error'];
+    }
+}
+
+$currentUser = get_logged_in_user();
+
+// =========================================================================
+// SCENARIO 1: USER IS NOT LOGGED IN -> DISPLAY PORTAL LOGIN GATEWAY ONLY
+// Products are strictly hidden until authenticated.
+// =========================================================================
+if (!$currentUser): 
+    $pageTitle = 'Wholesale Portal Sign-In';
+?>
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOXRETAIL - Wholesale Portal Access</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+    <style>[x-cloak] { display: none !important; }</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col justify-between selection:bg-amber-500 selection:text-slate-950" 
+      x-data="{ portal: '<?= htmlspecialchars($activePortal) ?>' }">
+
+    <!-- Top Wholesale Banner -->
+    <div class="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 text-xs font-bold py-2 px-4 text-center tracking-wide shadow-inner">
+        <span>🔒 PROTECTED WHOLESALE PORTAL • AUTHORIZED PERSONNEL & REGISTERED BUYERS ONLY</span>
+    </div>
+
+    <!-- Main Gateway Container -->
+    <div class="flex-1 flex items-center justify-center p-4 sm:p-6 my-auto">
+        <div class="max-w-xl w-full bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-6 sm:p-10 space-y-8">
+            
+            <!-- Brand Header -->
+            <div class="text-center space-y-2">
+                <div class="w-14 h-14 bg-amber-500/20 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-500 text-2xl mx-auto shadow-lg shadow-amber-500/10">
+                    📦
+                </div>
+                <h1 class="text-3xl font-black text-white tracking-tight">
+                    BOX<span class="text-amber-500">RETAIL</span> <span class="text-xs text-slate-400 font-bold uppercase tracking-widest bg-slate-800 px-2 py-0.5 rounded border border-slate-700 ml-1">Portal</span>
+                </h1>
+                <p class="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+                    Direct factory wholesale catalog is protected. Please sign in with your employee or administrator credentials.
+                </p>
+            </div>
+
+            <!-- TWO PORTAL BUTTONS (EMPLOYEE vs ADMIN) -->
+            <div class="grid grid-cols-2 gap-3 p-1.5 bg-slate-950/80 rounded-2xl border border-slate-800">
+                <!-- Button 1: Employee Portal -->
+                <button type="button"
+                        @click="portal = 'employee'"
+                        :class="portal === 'employee' ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white font-bold'"
+                        class="py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center space-x-2">
+                    <span>🏢 Employee Portal</span>
+                </button>
+
+                <!-- Button 2: Admin Portal -->
+                <button type="button"
+                        @click="portal = 'admin'"
+                        :class="portal === 'admin' ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white font-bold'"
+                        class="py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center space-x-2">
+                    <span>🛡️ Admin Portal</span>
+                </button>
+            </div>
+
+            <!-- Error Notification Alert -->
+            <?php if ($login_error): ?>
+                <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center space-x-2.5">
+                    <svg class="w-5 h-5 flex-shrink-0 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    <span><?= htmlspecialchars($login_error) ?></span>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['error']) && $_GET['error'] === 'admin_only'): ?>
+                <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold">
+                    ⛔ Access Denied: Administrator privileges required to access the Admin Hub.
+                </div>
+            <?php endif; ?>
+
+            <!-- LOGIN FORM -->
+            <form method="POST" class="space-y-4">
+                <input type="hidden" name="portal_login" value="1">
+                <input type="hidden" name="portal_type" :value="portal">
+
+                <!-- Mode Banner Indicator -->
+                <div class="p-3 rounded-xl border text-xs flex items-center justify-between"
+                     :class="portal === 'admin' ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' : 'bg-blue-500/10 border-blue-500/30 text-blue-300'">
+                    <span class="font-bold flex items-center space-x-1.5">
+                        <span x-text="portal === 'admin' ? '🛡️ Master Admin Portal' : '🏢 Internal Employee Portal'"></span>
+                    </span>
+                    <span class="text-[10px] uppercase font-mono tracking-wider opacity-80" 
+                          x-text="portal === 'admin' ? 'Admin Access Only' : 'Catalog Access'"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                        <span x-text="portal === 'admin' ? 'Admin Username' : 'Employee Username / ID'"></span>
+                    </label>
+                    <input type="text" 
+                           id="usernameField"
+                           name="username" 
+                           required 
+                           :placeholder="portal === 'admin' ? 'e.g. admin' : 'e.g. sanity_emp or samtest'"
+                           class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">Password</label>
+                    <input type="password" 
+                           id="passwordField"
+                           name="password" 
+                           required 
+                           placeholder="••••••••••••"
+                           class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white placeholder-slate-500 text-sm outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-colors">
+                </div>
+
+                <button type="submit" 
+                        class="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl shadow-lg transition-all transform active:scale-95 text-sm flex items-center justify-center space-x-2">
+                    <span x-text="portal === 'admin' ? 'Sign In as Master Administrator →' : 'Sign In & Unlock 360+ Product Catalog →'"></span>
+                </button>
+            </form>
+
+            <!-- Quick Autofill Helpers -->
+            <div class="pt-4 border-t border-slate-800 space-y-2">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quick Fill Demo Accounts:</div>
+                <div class="grid grid-cols-2 gap-2 text-[11px]">
+                    <button type="button" 
+                            @click="portal = 'employee'; document.getElementById('usernameField').value = 'sanity_emp'; document.getElementById('passwordField').value = 'SanityPass2026!';"
+                            class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left text-slate-300 hover:text-amber-400">
+                        <div class="font-bold">Sanity Employee</div>
+                        <div class="text-[10px] text-slate-400 font-mono">sanity_emp</div>
+                    </button>
+
+                    <button type="button" 
+                            @click="portal = 'admin'; document.getElementById('usernameField').value = 'admin'; document.getElementById('passwordField').value = 'admin123';"
+                            class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-left text-slate-300 hover:text-amber-400">
+                        <div class="font-bold">Master Admin</div>
+                        <div class="text-[10px] text-slate-400 font-mono">admin</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Database Setup / Status Helper -->
+            <div class="text-center text-xs text-slate-500">
+                <a href="install.php" class="hover:text-amber-400 underline">Database Setup & 360+ Product Seeder (install.php)</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer Note -->
+    <footer class="text-center py-4 text-xs text-slate-600 border-t border-slate-900">
+        © <?= date('Y') ?> BOXRETAIL Wholesale Packaging • Direct Factory Supply
+    </footer>
+
+    <!-- Botpress AI Chatbot Widget -->
+    <script src="https://cdn.botpress.cloud/webchat/v2/inject.js"></script>
+    <script src="https://files.bpcontent.cloud/2026/02/10/06/20260210061543-7L3O4Z5F.js" defer></script>
+</body>
+</html>
+<?php 
+exit();
+endif; 
+
+// =========================================================================
+// SCENARIO 2: USER IS AUTHENTICATED (EMPLOYEE OR ADMIN)
+// Show full 360+ Product Catalog & Interactive Tier Discount Tools
+// =========================================================================
 $pageTitle = 'Wholesale Box Catalog & Bulk Tier Calculator';
 require_once __DIR__ . '/includes/header.php';
 
@@ -68,35 +260,33 @@ if (empty($products) && file_exists(__DIR__ . '/data/products.json')) {
 <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8" 
       x-data="catalogApp(<?= htmlspecialchars(json_encode($products), ENT_QUOTES, 'UTF-8') ?>)">
 
-    <!-- Hero Section with Live Stats -->
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950/30 border border-slate-700/80 p-8 sm:p-12 mb-10 shadow-2xl">
-        <div class="max-w-3xl relative z-10 space-y-4">
-            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-wider">
-                <span>🏭 Direct Manufacturer Supply</span>
-                <span>•</span>
-                <span>₹ INR Wholesale Billing</span>
+    <!-- Authenticated Staff Welcome Bar -->
+    <div class="mb-6 p-4 rounded-2xl bg-slate-800/80 border border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 font-black flex items-center justify-center">
+                ✓
             </div>
-            <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-                Bulk Industrial Packaging <br class="hidden sm:block">
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500">Tier Discounts up to 25%</span>
-            </h1>
-            <p class="text-slate-300 text-base sm:text-lg leading-relaxed">
-                Order directly from our factory floor. Choose from over <strong class="text-amber-400 font-semibold" x-text="`${products.length}+`"></strong> standard box dimensions or calculate automated volume discounts for procurement.
-            </p>
-
-            <div class="pt-2 flex flex-wrap items-center gap-3">
-                <a href="#catalog" class="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl shadow-lg transition-all transform active:scale-95 text-sm flex items-center space-x-2">
-                    <span>Browse 360+ SKUs</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                </a>
-                <button @click="openQuickCalculator(products[0])" class="px-5 py-3.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold rounded-xl transition-all text-sm flex items-center space-x-2">
-                    <span>🧮 Bulk Volume Calculator</span>
-                </button>
+            <div>
+                <div class="text-sm font-bold text-white flex items-center space-x-2">
+                    <span>Welcome, <?= htmlspecialchars($currentUser['name'] ?? $currentUser['username']) ?>!</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded <?= ($currentUser['role'] ?? '') === 'admin' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30' ?>">
+                        <?= strtoupper($currentUser['role'] ?? 'employee') ?> PORTAL UNLOCKED
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400">Viewing authorized wholesale pricing in ₹ (INR) with automated volume tier discounts.</p>
             </div>
         </div>
 
-        <!-- Background Ambient Accents -->
-        <div class="absolute -right-20 -top-20 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex items-center space-x-2 w-full sm:w-auto">
+            <?php if (is_admin()): ?>
+                <a href="admin.php" class="flex-1 sm:flex-none px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs shadow transition-all flex items-center justify-center space-x-1.5">
+                    <span>🛡️ Master Admin Hub</span>
+                </a>
+            <?php endif; ?>
+            <a href="logout.php" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs font-semibold">
+                Sign Out
+            </a>
+        </div>
     </div>
 
     <!-- Catalog Control Bar (Search, Category Pills, Size Filter) -->

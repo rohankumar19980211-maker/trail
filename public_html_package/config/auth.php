@@ -58,11 +58,63 @@ function is_employee() {
 
 function require_login($role = null) {
     if (!is_logged_in()) {
-        header("Location: login.php?msg=login_required");
+        header("Location: index.php?msg=login_required");
         exit();
     }
     if ($role === 'admin' && !is_admin()) {
-        header("Location: index.php?msg=unauthorized");
+        header("Location: index.php?error=admin_only");
         exit();
+    }
+}
+
+// Strict Role-Enforced Login Helper
+function attempt_login($username, $password, $target_portal = 'employee') {
+    global $pdo, $db_connected;
+
+    if (!$username || !$password) {
+        return ['success' => false, 'error' => 'Username and password are required.'];
+    }
+
+    if (!$db_connected || !$pdo) {
+        return ['success' => false, 'error' => 'Database connection failed. Please run install.php'];
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM `users` WHERE LOWER(username) = ? LIMIT 1");
+        $stmt->execute([strtolower(trim($username))]);
+        $userRow = $stmt->fetch();
+
+        if (!$userRow) {
+            return ['success' => false, 'error' => 'Invalid credentials. User not found.'];
+        }
+
+        $storedHash = $userRow['password_hash'] ?? '';
+        if (!verify_password_secure($password, $storedHash)) {
+            return ['success' => false, 'error' => 'Invalid credentials. Incorrect password.'];
+        }
+
+        // Strict Portal Role Check
+        $userRole = $userRow['role'] ?? 'employee';
+
+        if ($target_portal === 'admin' && $userRole !== 'admin') {
+            return [
+                'success' => false, 
+                'error' => '⛔ Access Denied: Employee accounts cannot access the Admin Portal. Please use Employee Sign-In.'
+            ];
+        }
+
+        // Store user in session
+        $userData = [
+            'id' => $userRow['id'],
+            'username' => $userRow['username'],
+            'name' => $userRow['name'] ?? $userRow['username'],
+            'role' => $userRole
+        ];
+        $_SESSION['box_user'] = $userData;
+
+        return ['success' => true, 'user' => $userData];
+
+    } catch (\Exception $e) {
+        return ['success' => false, 'error' => 'Authentication error: ' . $e->getMessage()];
     }
 }
