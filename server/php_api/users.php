@@ -4,7 +4,7 @@ require_once __DIR__ . '/helpers.php';
 $currentUser = get_auth_user();
 if (!$currentUser) {
     http_response_code(401);
-    echo json_encode(['message' => 'Unauthorized']);
+    echo json_encode(['message' => 'Unauthorized: Missing or invalid token']);
     exit();
 }
 
@@ -22,14 +22,14 @@ $id = isset($_GET['id']) ? $_GET['id'] : '';
 if ($method === 'GET') {
     $safeUsers = array_map(function($u) {
         return [
-            '_id' => isset($u['_id']) ? $u['_id'] : $u['id'],
+            '_id' => isset($u['_id']) ? $u['_id'] : (isset($u['id']) ? $u['id'] : ''),
             'username' => isset($u['username']) ? $u['username'] : '',
             'name' => isset($u['name']) ? $u['name'] : '',
             'role' => isset($u['role']) ? $u['role'] : 'employee',
             'createdAt' => isset($u['createdAt']) ? $u['createdAt'] : date('c')
         ];
     }, $users);
-    echo json_encode($safeUsers);
+    echo json_encode(array_values($safeUsers));
     exit();
 }
 
@@ -68,7 +68,13 @@ if ($method === 'POST') {
     ];
 
     $users[] = $newUser;
-    save_collection('users', $users);
+    $saved = save_collection('users', $users);
+
+    if (!$saved) {
+        http_response_code(500);
+        echo json_encode(['message' => 'Failed to save employee to database file. Check server file write permissions.']);
+        exit();
+    }
 
     http_response_code(201);
     echo json_encode([
@@ -122,10 +128,10 @@ if ($method === 'PUT') {
     $userPass = isset($targetUser['password']) ? (string)$targetUser['password'] : '';
     $isOldMatch = false;
 
-    if (strpos($userPass, '$2') === 0) {
-        $isOldMatch = password_verify($oldPassword, $userPass);
-    } else {
-        $isOldMatch = ($userPass === $oldPassword);
+    if (password_verify($oldPassword, $userPass)) {
+        $isOldMatch = true;
+    } else if ($userPass === $oldPassword) {
+        $isOldMatch = true;
     }
 
     if (!$isOldMatch) {

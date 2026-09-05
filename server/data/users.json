@@ -70,5 +70,14 @@
     "password": "$2a$10$NwuB9Hn8RpHsaeznoPMySuynAjvrlAf/ISd3Ln.EMfngFAkcjerR6",
     "name": "varun",
     "role": "employee"
+  },
+  {
+    "_id": "id_1788600304997_x91qyzh9g",
+    "createdAt": "2026-09-05T09:25:04.997Z",
+    "updatedAt": "2026-09-05T09:25:04.997Z",
+    "username": "ramu@xyz",
+    "password": "$2a$10$Csm8TZAEMaixg5aXjSLNyeGoqrKrDNY4Y0ioIEFKkY698Mrg45t9O",
+    "name": "Ramu",
+    "role": "employee"
   }
 ]

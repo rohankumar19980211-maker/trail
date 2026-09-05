@@ -31,10 +31,10 @@ if (!$found) {
 $userPass = isset($found['password']) ? (string)$found['password'] : '';
 $isMatch = false;
 
-if (strpos($userPass, '$2') === 0) {
-    $isMatch = password_verify($password, $userPass);
-} else {
-    $isMatch = ($userPass === $password);
+if (password_verify($password, $userPass)) {
+    $isMatch = true;
+} else if ($userPass === $password) {
+    $isMatch = true;
 }
 
 if (!$isMatch) {
@@ -45,7 +45,7 @@ if (!$isMatch) {
 
 $token = generate_token($found);
 $userRes = [
-    'id' => isset($found['_id']) ? $found['_id'] : $found['id'],
+    'id' => isset($found['_id']) ? $found['_id'] : (isset($found['id']) ? $found['id'] : ''),
     'username' => $found['username'],
     'name' => $found['name'],
     'role' => isset($found['role']) ? $found['role'] : 'employee'
