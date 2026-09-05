@@ -56,7 +56,7 @@ if ($method === 'POST') {
         }
     }
 
-    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+    $hashedPassword = str_replace('$2y$', '$2a$', password_hash($password, PASSWORD_BCRYPT));
     $newUser = [
         '_id' => 'user_' . time() . '_' . substr(md5(mt_rand()), 0, 6),
         'username' => $cleanUsername,
@@ -140,7 +140,7 @@ if ($method === 'PUT') {
         exit();
     }
 
-    $users[$foundIndex]['password'] = password_hash($newPassword, PASSWORD_BCRYPT);
+    $users[$foundIndex]['password'] = str_replace('$2y$', '$2a$', password_hash($newPassword, PASSWORD_BCRYPT));
     $users[$foundIndex]['updatedAt'] = date('c');
     save_collection('users', $users);
 

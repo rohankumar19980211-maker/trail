@@ -26,8 +26,9 @@ router.post('/login', async (req, res) => {
     let isMatch = false;
     const userPasswordStr = String(user.password || '');
 
-    if (userPasswordStr.startsWith('$2a$') || userPasswordStr.startsWith('$2b$') || userPasswordStr.startsWith('$2y$') || userPasswordStr.startsWith('$2')) {
-      isMatch = await bcrypt.compare(password, userPasswordStr);
+    if (userPasswordStr.startsWith('$2')) {
+      const normalizedHash = userPasswordStr.replace(/^\$2y\$/, '$2a$');
+      isMatch = await bcrypt.compare(password, normalizedHash);
     } else {
       isMatch = (userPasswordStr === String(password));
     }
@@ -134,8 +135,9 @@ router.put('/users/:id/password', authMiddleware, adminOnly, async (req, res) =>
     // Verify Old Password
     let isOldMatch = false;
     const userPasswordStr = String(user.password || '');
-    if (userPasswordStr.startsWith('$2a$') || userPasswordStr.startsWith('$2b$') || userPasswordStr.startsWith('$2y$') || userPasswordStr.startsWith('$2')) {
-      isOldMatch = await bcrypt.compare(oldPassword, userPasswordStr);
+    if (userPasswordStr.startsWith('$2')) {
+      const normalizedHash = userPasswordStr.replace(/^\$2y\$/, '$2a$');
+      isOldMatch = await bcrypt.compare(oldPassword, normalizedHash);
     } else {
       isOldMatch = (userPasswordStr === String(oldPassword));
     }
