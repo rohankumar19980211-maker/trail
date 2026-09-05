@@ -25,19 +25,22 @@ print(f"Initial FTP working directory: {pwd}")
 items = ftp.nlst()
 print(f"Directory listing at root ({len(items)} items): {items}")
 
-# Navigate to public_html if present
+# The FTP-Deploy-Action this replaced used server-dir: /public_html/, so that
+# absolute path is the known-good target. FTP_TARGET_DIR overrides it for
+# addon domains, whose root is /public_html/<domain>/.
+target_dir = os.environ.get('FTP_TARGET_DIR') or '/public_html'
 target_found = False
-for candidate in ['public_html', '/public_html', './public_html']:
+for candidate in [target_dir, target_dir.lstrip('/'), 'public_html']:
     try:
         ftp.cwd(candidate)
-        print(f"✅ Successfully navigated to '{candidate}'. Current directory: {ftp.pwd()}")
+        print(f"✅ Navigated to '{candidate}'. Current directory: {ftp.pwd()}")
         target_found = True
         break
     except Exception as e:
         print(f"Candidate '{candidate}' failed: {e}")
 
 if not target_found:
-    print(f"ℹ️ Using current directory '{ftp.pwd()}' as deployment root.")
+    print(f"ℹ️ No candidate worked; using login directory '{ftp.pwd()}' as deployment root.")
 
 base_target = ftp.pwd()
 
