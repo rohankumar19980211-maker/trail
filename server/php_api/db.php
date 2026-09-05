@@ -71,7 +71,7 @@ function get_json_input() {
 }
 
 // Auto Diagnostic Check if db.php is accessed directly in browser / API call
-if (count(get_included_files()) === 1) {
+if (empty($suppress_db_check)) {
     if ($use_mysql) {
         echo json_encode([
             'status' => 'connected',
@@ -90,5 +90,6 @@ if (count(get_included_files()) === 1) {
     }
     exit();
 }
+
 
 
