@@ -37,25 +37,33 @@ router.post('/login', async (req, res) => {
     }
 
     const cleanUsername = username.trim().toLowerCase();
-    
-    // Case-insensitive user search
     const allUsers = dbStore.users.find({});
-    const user = allUsers.find(u => u.username && u.username.trim().toLowerCase() === cleanUsername);
+    
+    let foundUser = null;
+    let usernameFound = false;
 
-    if (!user) {
+    for (let u of allUsers) {
+      if (u.username && u.username.trim().toLowerCase() === cleanUsername) {
+        usernameFound = true;
+        const userPasswordStr = String(u.password || '');
+        if (await boxVerifyPassword(password, userPasswordStr)) {
+          foundUser = u;
+          break;
+        }
+      }
+    }
+
+    if (!usernameFound) {
       return res.status(401).json({ message: 'Invalid credentials. User not found.' });
     }
 
-    const userPasswordStr = String(user.password || '');
-    const isMatch = await boxVerifyPassword(password, userPasswordStr);
-
-    if (!isMatch) {
+    if (!foundUser) {
       return res.status(401).json({ message: 'Invalid credentials. Incorrect password.' });
     }
 
     const tokenSecret = JWT_SECRET || 'super_secret_box_retailer_key_2026';
     const token = jwt.sign(
-      { id: user._id, username: user.username, name: user.name, role: user.role || 'employee' },
+      { id: foundUser._id, username: foundUser.username, name: foundUser.name, role: foundUser.role || 'employee' },
       tokenSecret,
       { expiresIn: '24h' }
     );
@@ -63,10 +71,10 @@ router.post('/login', async (req, res) => {
     return res.json({
       token,
       user: {
-        id: user._id,
-        username: user.username,
-        name: user.name,
-        role: user.role || 'employee'
+        id: foundUser._id,
+        username: foundUser.username,
+        name: foundUser.name,
+        role: foundUser.role || 'employee'
       }
     });
   } catch (err) {
@@ -97,7 +105,7 @@ router.get('/users', authMiddleware, adminOnly, (req, res) => {
   }
 });
 
-// Admin Route: POST /api/auth/users - Create new internal employee account
+// Admin Route: POST /api/auth/users - Create or Upsert internal employee account
 router.post('/users', authMiddleware, adminOnly, async (req, res) => {
   try {
     const { username, password, name, role = 'employee' } = req.body;
@@ -106,12 +114,27 @@ router.post('/users', authMiddleware, adminOnly, async (req, res) => {
     }
 
     const cleanUsername = username.trim().toLowerCase();
-    const existing = dbStore.users.find({}).find(u => u.username && u.username.trim().toLowerCase() === cleanUsername);
+    const allUsers = dbStore.users.find({});
+    const existing = allUsers.find(u => u.username && u.username.trim().toLowerCase() === cleanUsername);
+    const hashedPassword = boxHashPassword(password);
+
     if (existing) {
-      return res.status(400).json({ message: 'Username is already taken' });
+      // Upsert/Update existing user credentials with new password
+      dbStore.users.findByIdAndUpdate(existing._id, {
+        password: hashedPassword,
+        name: name.trim(),
+        role: role === 'admin' ? 'admin' : 'employee'
+      });
+
+      return res.status(200).json({
+        _id: existing._id,
+        username: cleanUsername,
+        name: name.trim(),
+        role: role === 'admin' ? 'admin' : 'employee',
+        createdAt: existing.createdAt
+      });
     }
 
-    const hashedPassword = boxHashPassword(password);
     const newUser = dbStore.users.create({
       username: cleanUsername,
       password: hashedPassword,

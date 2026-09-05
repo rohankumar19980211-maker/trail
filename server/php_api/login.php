@@ -14,34 +14,38 @@ if (!$username || !$password) {
 $users = get_collection('users');
 $cleanUser = strtolower($username);
 
-$found = null;
+$foundUser = null;
+$usernameFound = false;
+
 foreach ($users as $u) {
     if (isset($u['username']) && strtolower(trim($u['username'])) === $cleanUser) {
-        $found = $u;
-        break;
+        $usernameFound = true;
+        $userPass = isset($u['password']) ? (string)$u['password'] : '';
+        if (box_verify_password($password, $userPass)) {
+            $foundUser = $u;
+            break;
+        }
     }
 }
 
-if (!$found) {
+if (!$usernameFound) {
     http_response_code(401);
     echo json_encode(['message' => 'Invalid credentials. User not found.']);
     exit();
 }
 
-$userPass = isset($found['password']) ? (string)$found['password'] : '';
-
-if (!box_verify_password($password, $userPass)) {
+if (!$foundUser) {
     http_response_code(401);
     echo json_encode(['message' => 'Invalid credentials. Incorrect password.']);
     exit();
 }
 
-$token = generate_token($found);
+$token = generate_token($foundUser);
 $userRes = [
-    'id' => isset($found['_id']) ? $found['_id'] : (isset($found['id']) ? $found['id'] : ''),
-    'username' => $found['username'],
-    'name' => $found['name'],
-    'role' => isset($found['role']) ? $found['role'] : 'employee'
+    'id' => isset($foundUser['_id']) ? $foundUser['_id'] : (isset($foundUser['id']) ? $foundUser['id'] : ''),
+    'username' => $foundUser['username'],
+    'name' => $foundUser['name'],
+    'role' => isset($foundUser['role']) ? $foundUser['role'] : 'employee'
 ];
 
 echo json_encode(['token' => $token, 'user' => $userRes]);

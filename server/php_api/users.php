@@ -33,7 +33,7 @@ if ($method === 'GET') {
     exit();
 }
 
-// 2. POST /api/auth/users
+// 2. POST /api/auth/users (Create or Upsert Employee Account)
 if ($method === 'POST') {
     $input = get_json_input();
     $username = isset($input['username']) ? trim($input['username']) : '';
@@ -48,15 +48,42 @@ if ($method === 'POST') {
     }
 
     $cleanUsername = strtolower($username);
-    foreach ($users as $u) {
+    $hashedPassword = box_hash_password($password);
+
+    $existingIndex = -1;
+    foreach ($users as $index => $u) {
         if (isset($u['username']) && strtolower(trim($u['username'])) === $cleanUsername) {
-            http_response_code(400);
-            echo json_encode(['message' => 'Username is already taken']);
-            exit();
+            $existingIndex = $index;
+            break;
         }
     }
 
-    $hashedPassword = box_hash_password($password);
+    if ($existingIndex !== -1) {
+        // Update existing user credentials with new password
+        $users[$existingIndex]['password'] = $hashedPassword;
+        $users[$existingIndex]['name'] = $name;
+        $users[$existingIndex]['role'] = $role;
+        $users[$existingIndex]['updatedAt'] = date('c');
+        $saved = save_collection('users', $users);
+
+        if (!$saved) {
+            http_response_code(500);
+            echo json_encode(['message' => 'Failed to save employee to database file. Check server permissions.']);
+            exit();
+        }
+
+        http_response_code(200);
+        echo json_encode([
+            '_id' => isset($users[$existingIndex]['_id']) ? $users[$existingIndex]['_id'] : $users[$existingIndex]['id'],
+            'username' => $users[$existingIndex]['username'],
+            'name' => $users[$existingIndex]['name'],
+            'role' => $users[$existingIndex]['role'],
+            'createdAt' => isset($users[$existingIndex]['createdAt']) ? $users[$existingIndex]['createdAt'] : date('c')
+        ]);
+        exit();
+    }
+
+    // Create new user account
     $newUser = [
         '_id' => 'user_' . time() . '_' . substr(md5(mt_rand()), 0, 6),
         'username' => $cleanUsername,
@@ -72,7 +99,7 @@ if ($method === 'POST') {
 
     if (!$saved) {
         http_response_code(500);
-        echo json_encode(['message' => 'Failed to save employee to database file. Check server file write permissions.']);
+        echo json_encode(['message' => 'Failed to save employee to database file. Check server permissions.']);
         exit();
     }
 
