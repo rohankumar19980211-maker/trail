@@ -39,6 +39,8 @@ for candidate in ['public_html', '/public_html', './public_html']:
 if not target_found:
     print(f"ℹ️ Using current directory '{ftp.pwd()}' as deployment root.")
 
+base_target = ftp.pwd()
+
 target_files = ftp.nlst()
 print(f"::notice title=FTP_FILES::in_public_html={','.join(target_files[:30])}")
 print(f"Target upload directory: {base_target}")
