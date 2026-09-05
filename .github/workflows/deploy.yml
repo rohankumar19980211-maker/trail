@@ -30,13 +30,5 @@ jobs:
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
-          python deploy_ftp.py public_html_package > deploy_output.log 2>&1 || true
-          cat deploy_output.log
+          python deploy_ftp.py public_html_package
 
-      - name: 📝 Commit Deploy Log
-        run: |
-          git config --global user.name "DeployBot"
-          git config --global user.email "deploy@liveteachcreate.in"
-          git add deploy_output.log
-          git commit -m "docs: auto deploy debug log [skip ci]" || true
-          git push origin main || true

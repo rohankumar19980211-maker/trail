@@ -40,6 +40,7 @@ if not target_found:
     print(f"ℹ️ Using current directory '{ftp.pwd()}' as deployment root.")
 
 base_target = ftp.pwd()
+print(f"::notice title=FTP_INFO::root_pwd={pwd} base_target={base_target} root_items={','.join(items[:20])}")
 print(f"Target upload directory: {base_target}")
 print(f"Existing files in target before upload: {ftp.nlst()}")
 
