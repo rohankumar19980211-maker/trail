@@ -12,10 +12,13 @@ const getBaseURL = () => {
 
 const API = axios.create({
   baseURL: getBaseURL(),
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('box_token');
+  const token = localStorage.getItem('box_token') || localStorage.getItem('boxretail_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

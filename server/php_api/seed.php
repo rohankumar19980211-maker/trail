@@ -1,56 +1,17 @@
 <?php
-require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/auth.php';
 
-function seed_php_database() {
+function seed_database_all() {
+    global $use_mysql, $pdo;
+
     $defaultUsers = [
-        [
-            '_id' => 'usr_admin',
-            'username' => 'admin',
-            'password' => 'admin123',
-            'name' => 'Master Admin',
-            'role' => 'admin',
-            'createdAt' => date('c'),
-            'updatedAt' => date('c')
-        ],
-        [
-            '_id' => 'usr_john',
-            'username' => 'emp_john',
-            'password' => 'boxemp123',
-            'name' => 'John Miller (Sales)',
-            'role' => 'employee',
-            'createdAt' => date('c'),
-            'updatedAt' => date('c')
-        ],
-        [
-            '_id' => 'usr_sarah',
-            'username' => 'emp_sarah',
-            'password' => 'boxemp123',
-            'name' => 'Sarah Jenkins (Logistics)',
-            'role' => 'employee',
-            'createdAt' => date('c'),
-            'updatedAt' => date('c')
-        ],
-        [
-            '_id' => 'usr_alex',
-            'username' => 'emp_alex',
-            'password' => 'boxemp123',
-            'name' => 'Alex Rivera (Warehouse)',
-            'role' => 'employee',
-            'createdAt' => date('c'),
-            'updatedAt' => date('c')
-        ],
-        [
-            '_id' => 'usr_david',
-            'username' => 'emp_david',
-            'password' => 'boxemp123',
-            'name' => 'David Vance (Procurement)',
-            'role' => 'employee',
-            'createdAt' => date('c'),
-            'updatedAt' => date('c')
-        ]
+        ['username' => 'admin', 'password' => 'admin123', 'name' => 'Master Admin', 'role' => 'admin'],
+        ['username' => 'emp_john', 'password' => 'boxemp123', 'name' => 'John Miller (Sales)', 'role' => 'employee'],
+        ['username' => 'emp_sarah', 'password' => 'boxemp123', 'name' => 'Sarah Jenkins (Logistics)', 'role' => 'employee'],
+        ['username' => 'emp_alex', 'password' => 'boxemp123', 'name' => 'Alex Rivera (Warehouse)', 'role' => 'employee'],
+        ['username' => 'emp_david', 'password' => 'boxemp123', 'name' => 'David Vance (Procurement)', 'role' => 'employee']
     ];
-
-    save_collection('users', $defaultUsers);
 
     $sampleImages = [
         'Corrugated Cartons' => [
@@ -156,13 +117,59 @@ function seed_php_database() {
         }
     }
 
-    save_collection('products', $products);
+    if ($use_mysql && $pdo) {
+        try {
+            foreach ($defaultUsers as $u) {
+                $hash = generate_universal_hash($u['password']);
+                $stmt = $pdo->prepare("INSERT INTO users (username, password_hash, name, role) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), name = VALUES(name)");
+                $stmt->execute([strtolower($u['username']), $hash, $u['name'], $u['role']]);
+            }
+
+            foreach ($products as $p) {
+                $stmt = $pdo->prepare("INSERT INTO products (sku, title, box_size, category, size_category, length, width, height, description, price_inr, stock_qty, image_url, discount_tiers_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE title = VALUES(title), price_inr = VALUES(price_inr), stock_qty = VALUES(stock_qty)");
+                $stmt->execute([
+                    $p['sku'],
+                    $p['title'],
+                    $p['boxSize'],
+                    $p['category'],
+                    $p['sizeCategory'],
+                    $p['length'],
+                    $p['width'],
+                    $p['height'],
+                    $p['description'],
+                    $p['unitPrice'],
+                    $p['availableQuantity'],
+                    $p['image'],
+                    json_encode($p['discountTiers'])
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Error logged, fallback to JSON
+        }
+    }
+
+    // Always keep JSON synchronized
+    $jsonUsers = [];
+    foreach ($defaultUsers as $u) {
+        $jsonUsers[] = [
+            '_id' => 'usr_' . strtolower($u['username']),
+            'username' => strtolower($u['username']),
+            'password' => generate_universal_hash($u['password']),
+            'password_hash' => generate_universal_hash($u['password']),
+            'name' => $u['name'],
+            'role' => $u['role'],
+            'createdAt' => date('c'),
+            'updatedAt' => date('c')
+        ];
+    }
+    save_json_collection('users', $jsonUsers);
+    save_json_collection('products', $products);
 
     return ['usersCount' => count($defaultUsers), 'productsCount' => count($products)];
 }
 
 // Auto-run seed if executed directly
 if (basename($_SERVER['SCRIPT_FILENAME']) === 'seed.php') {
-    $res = seed_php_database();
+    $res = seed_database_all();
     echo json_encode(array_merge(['message' => 'Database successfully seeded!'], $res));
 }
