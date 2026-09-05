@@ -2,8 +2,31 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const dbStore = require('../utils/dbStore');
 const { authMiddleware, adminOnly, JWT_SECRET } = require('../middleware/authMiddleware');
+
+function boxHashPassword(password) {
+  return 'sha256$' + crypto.createHash('sha256').update(password + 'box_salt_2026').digest('hex');
+}
+
+async function boxVerifyPassword(password, hash) {
+  if (!hash) return false;
+  
+  if (hash.startsWith('sha256$')) {
+    const calc = 'sha256$' + crypto.createHash('sha256').update(password + 'box_salt_2026').digest('hex');
+    return hash === calc;
+  }
+  
+  if (hash.startsWith('$2')) {
+    try {
+      const normalizedHash = hash.replace(/^\$2y\$/, '$2a$');
+      if (await bcrypt.compare(password, normalizedHash)) return true;
+    } catch (e) {}
+  }
+  
+  return hash === String(password);
+}
 
 // POST /api/auth/login - Flexible login for employees and admin
 router.post('/login', async (req, res) => {
@@ -23,15 +46,8 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials. User not found.' });
     }
 
-    let isMatch = false;
     const userPasswordStr = String(user.password || '');
-
-    if (userPasswordStr.startsWith('$2')) {
-      const normalizedHash = userPasswordStr.replace(/^\$2y\$/, '$2a$');
-      isMatch = await bcrypt.compare(password, normalizedHash);
-    } else {
-      isMatch = (userPasswordStr === String(password));
-    }
+    const isMatch = await boxVerifyPassword(password, userPasswordStr);
 
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials. Incorrect password.' });
@@ -95,7 +111,7 @@ router.post('/users', authMiddleware, adminOnly, async (req, res) => {
       return res.status(400).json({ message: 'Username is already taken' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = boxHashPassword(password);
     const newUser = dbStore.users.create({
       username: cleanUsername,
       password: hashedPassword,
@@ -132,21 +148,14 @@ router.put('/users/:id/password', authMiddleware, adminOnly, async (req, res) =>
       return res.status(404).json({ message: 'Employee user account not found' });
     }
 
-    // Verify Old Password
-    let isOldMatch = false;
     const userPasswordStr = String(user.password || '');
-    if (userPasswordStr.startsWith('$2')) {
-      const normalizedHash = userPasswordStr.replace(/^\$2y\$/, '$2a$');
-      isOldMatch = await bcrypt.compare(oldPassword, normalizedHash);
-    } else {
-      isOldMatch = (userPasswordStr === String(oldPassword));
-    }
+    const isOldMatch = await boxVerifyPassword(oldPassword, userPasswordStr);
 
     if (!isOldMatch) {
       return res.status(400).json({ message: 'Old password does not match current password' });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = boxHashPassword(newPassword);
     dbStore.users.findByIdAndUpdate(req.params.id, { password: hashedPassword });
 
     res.json({ message: 'Password updated successfully' });

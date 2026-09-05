@@ -44,6 +44,29 @@ function get_json_input() {
     return json_decode($raw, true) ?: [];
 }
 
+function box_hash_password($password) {
+    return 'sha256$' . hash('sha256', $password . 'box_salt_2026');
+}
+
+function box_verify_password($password, $hash) {
+    if (!$hash) return false;
+    
+    // 1. Universal Salted SHA256 Match (100% reliable across all shared hosting PHP builds)
+    if (strpos($hash, 'sha256$') === 0) {
+        return $hash === ('sha256$' . hash('sha256', $password . 'box_salt_2026'));
+    }
+    
+    // 2. Bcrypt checks for legacy/node generated hashes
+    if (password_verify($password, $hash)) return true;
+    if (password_verify($password, str_replace('$2a$', '$2y$', $hash))) return true;
+    if (password_verify($password, str_replace('$2y$', '$2a$', $hash))) return true;
+    
+    // 3. Fallback direct match for initial seed default passwords
+    if ($hash === (string)$password) return true;
+    
+    return false;
+}
+
 function get_auth_user() {
     $auth = '';
     

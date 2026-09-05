@@ -29,18 +29,8 @@ if (!$found) {
 }
 
 $userPass = isset($found['password']) ? (string)$found['password'] : '';
-$isMatch = false;
 
-$pass2y = str_replace('$2a$', '$2y$', $userPass);
-$pass2a = str_replace('$2y$', '$2a$', $userPass);
-
-if (password_verify($password, $userPass) || password_verify($password, $pass2y) || password_verify($password, $pass2a)) {
-    $isMatch = true;
-} else if ($userPass === $password) {
-    $isMatch = true;
-}
-
-if (!$isMatch) {
+if (!box_verify_password($password, $userPass)) {
     http_response_code(401);
     echo json_encode(['message' => 'Invalid credentials. Incorrect password.']);
     exit();

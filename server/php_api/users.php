@@ -56,7 +56,7 @@ if ($method === 'POST') {
         }
     }
 
-    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+    $hashedPassword = box_hash_password($password);
     $newUser = [
         '_id' => 'user_' . time() . '_' . substr(md5(mt_rand()), 0, 6),
         'username' => $cleanUsername,
@@ -126,24 +126,14 @@ if ($method === 'PUT') {
 
     $targetUser = $users[$foundIndex];
     $userPass = isset($targetUser['password']) ? (string)$targetUser['password'] : '';
-    $isOldMatch = false;
 
-    $pass2y = str_replace('$2a$', '$2y$', $userPass);
-    $pass2a = str_replace('$2y$', '$2a$', $userPass);
-
-    if (password_verify($oldPassword, $userPass) || password_verify($oldPassword, $pass2y) || password_verify($oldPassword, $pass2a)) {
-        $isOldMatch = true;
-    } else if ($userPass === $oldPassword) {
-        $isOldMatch = true;
-    }
-
-    if (!$isOldMatch) {
+    if (!box_verify_password($oldPassword, $userPass)) {
         http_response_code(400);
         echo json_encode(['message' => 'Old password does not match current password']);
         exit();
     }
 
-    $users[$foundIndex]['password'] = password_hash($newPassword, PASSWORD_BCRYPT);
+    $users[$foundIndex]['password'] = box_hash_password($newPassword);
     $users[$foundIndex]['updatedAt'] = date('c');
     save_collection('users', $users);
 
