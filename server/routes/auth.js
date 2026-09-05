@@ -26,7 +26,7 @@ router.post('/login', async (req, res) => {
     let isMatch = false;
     const userPasswordStr = String(user.password || '');
 
-    if (userPasswordStr.startsWith('$2a$') || userPasswordStr.startsWith('$2b$')) {
+    if (userPasswordStr.startsWith('$2a$') || userPasswordStr.startsWith('$2b$') || userPasswordStr.startsWith('$2y$') || userPasswordStr.startsWith('$2')) {
       isMatch = await bcrypt.compare(password, userPasswordStr);
     } else {
       isMatch = (userPasswordStr === String(password));
@@ -134,7 +134,7 @@ router.put('/users/:id/password', authMiddleware, adminOnly, async (req, res) =>
     // Verify Old Password
     let isOldMatch = false;
     const userPasswordStr = String(user.password || '');
-    if (userPasswordStr.startsWith('$2a$') || userPasswordStr.startsWith('$2b$')) {
+    if (userPasswordStr.startsWith('$2a$') || userPasswordStr.startsWith('$2b$') || userPasswordStr.startsWith('$2y$') || userPasswordStr.startsWith('$2')) {
       isOldMatch = await bcrypt.compare(oldPassword, userPasswordStr);
     } else {
       isOldMatch = (userPasswordStr === String(oldPassword));

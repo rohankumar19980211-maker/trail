@@ -31,7 +31,7 @@ if (!$found) {
 $userPass = isset($found['password']) ? (string)$found['password'] : '';
 $isMatch = false;
 
-if (strpos($userPass, '$2a$') === 0 || strpos($userPass, '$2b$') === 0) {
+if (strpos($userPass, '$2') === 0) {
     $isMatch = password_verify($password, $userPass);
 } else {
     $isMatch = ($userPass === $password);

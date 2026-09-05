@@ -122,7 +122,7 @@ if ($method === 'PUT') {
     $userPass = isset($targetUser['password']) ? (string)$targetUser['password'] : '';
     $isOldMatch = false;
 
-    if (strpos($userPass, '$2a$') === 0 || strpos($userPass, '$2b$') === 0) {
+    if (strpos($userPass, '$2') === 0) {
         $isOldMatch = password_verify($oldPassword, $userPass);
     } else {
         $isOldMatch = ($userPass === $oldPassword);
