@@ -39,10 +39,10 @@ for candidate in ['public_html', '/public_html', './public_html']:
 if not target_found:
     print(f"ℹ️ Using current directory '{ftp.pwd()}' as deployment root.")
 
-base_target = ftp.pwd()
-print(f"::notice title=FTP_INFO::root_pwd={pwd} base_target={base_target} root_items={','.join(items[:20])}")
+target_files = ftp.nlst()
+print(f"::notice title=FTP_FILES::in_public_html={','.join(target_files[:30])}")
 print(f"Target upload directory: {base_target}")
-print(f"Existing files in target before upload: {ftp.nlst()}")
+print(f"Existing files in target before upload: {target_files}")
 
 local_dir = sys.argv[1] if len(sys.argv) > 1 else 'public_html_package'
 print(f"\nStarting upload from '{local_dir}'...")
